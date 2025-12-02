@@ -1,0 +1,220 @@
+Command: /home/rjt21/.espressif/python_env/idf6.0_py3.12_env/bin/python /home/rjt21/esp-idf/tools/idf_monitor.py -p /dev/ttyUSB0 -b 115200 --toolchain-prefix xtensa-esp32-elf- --target esp32 --revision 0 /home/rjt21/esp-projects/ecen330_lab7/build/ecen330_lab7.elf /home/rjt21/esp-projects/ecen330_lab7/build/bootloader/bootloader.elf -m '/home/rjt21/.espressif/python_env/idf6.0_py3.12_env/bin/python' '/home/rjt21/esp-idf/tools/idf.py'
+ets Jun  8 2016 00:22:57
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6376
+load:0x40078000,len:15864
+load:0x40080400,len:3908
+entry 0x40080644
+[0;32mI (27) boot: ESP-IDF v6.0-dev-2367-g5c5eb99eab 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Nov 21 2025 16:40:40[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (30) boot: chip revision: v1.1[0m
+[0;32mI (32) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (36) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (40) boot.esp32: SPI Flash Size : 2MB[0m
+[0;32mI (43) boot: Enabling RNG early entropy source...[0m
+[0;32mI (48) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (57) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (70) boot:  2 factory          factory app      00 00 00010000 000e0000[0m
+[0;32mI (76) boot:  3 storage          Unknown data     01 82 000f0000 00020000[0m
+[0;32mI (83) boot: End of partition table[0m
+[0;32mI (86) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=0ed08h ( 60680) map[0m
+[0;32mI (115) esp_image: segment 1: paddr=0001ed30 vaddr=3ffb0000 size=012e8h (  4840) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=00020020 vaddr=400d0020 size=2482ch (149548) map[0m
+[0;32mI (172) esp_image: segment 3: paddr=00044854 vaddr=3ffb12e8 size=01538h (  5432) load[0m
+[0;32mI (175) esp_image: segment 4: paddr=00045d94 vaddr=40080000 size=0d130h ( 53552) load[0m
+[0;32mI (198) esp_image: segment 5: paddr=00052ecc vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (205) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (205) boot: Disabling RNG early entropy source...[0m
+[0;32mI (216) cpu_start: Multicore app[0m
+[0;32mI (224) cpu_start: GPIO 3 and 1 are used as console UART I/O pins[0m
+[0;32mI (225) cpu_start: Pro cpu start user code[0m
+[0;32mI (225) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (226) app_init: Application information:[0m
+[0;32mI (230) app_init: Project name:     ecen330_lab7[0m
+[0;32mI (235) app_init: App version:      1[0m
+[0;32mI (238) app_init: Compile time:     Nov 21 2025 16:40:46[0m
+[0;32mI (243) app_init: ELF file SHA256:  c15feecd8...[0m
+[0;32mI (247) app_init: ESP-IDF:          v6.0-dev-2367-g5c5eb99eab[0m
+[0;32mI (253) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (257) efuse_init: Max chip rev:     v3.99 [0m
+[0;32mI (261) efuse_init: Chip rev:         v1.1[0m
+[0;32mI (265) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (271) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (276) heap_init: At 3FFB3190 len 0002CE70 (179 KiB): DRAM[0m
+[0;32mI (281) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM[0m
+[0;32mI (286) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM[0m
+[0;32mI (292) heap_init: At 4008D130 len 00012ED0 (75 KiB): IRAM[0m
+[0;32mI (299) spi_flash: detected chip: generic[0m
+[0;32mI (301) spi_flash: flash io: dio[0m
+[0;33mW (304) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (317) main_task: Started on CPU0[0m
+[0;32mI (327) main_task: Calling app_main()[0m
+
+
+╔════════════════════════════════════════════════╗
+║      ESP32 SD CARD DIAGNOSTIC TOOL             ║
+╚════════════════════════════════════════════════╝
+
+This tool tests SD card with multiple configurations.
+Make sure:
+  1. SD card is inserted
+  2. SD card is formatted as FAT32
+  3. Card capacity is ≤32GB
+
+========================================
+TEST 1: GPIO BASIC FUNCTIONALITY
+========================================
+Pin Configuration:
+  SD_CS   = GPIO22
+  SD_MOSI = GPIO23
+  SD_MISO = GPIO19
+  SD_SCK  = GPIO18
+
+All CS pins set HIGH (deselected):
+  SD_CS (GPIO22) = 0
+  LCD_CS (GPIO14) = 0
+  TOUCH_CS (GPIO12) = 0
+
+MISO Pin Test (GPIO19):
+  Pull-up   = 1 (expect 1)
+  Pull-down = 0 (expect 0)
+  ✓ MISO pin OK
+
+========================================
+TEST 2: SPI BUS INITIALIZATION
+========================================
+Initializing========================================
+TEST 3: SD CARD MOUNT ATTEMPTS
+========================================
+
+Trying multions...
+
+------------------------------
+Config 1: Ultra-safe (400kHz, 10s)
+  Frequency: 40000 ms
+----------------------------------------
+Attempting mount...
+[0;32mI (2747) sdspi_transaction: cmd=5, R1 response: command not supported[0m
+
+✓✓✓ SUCCESS! SD CARD MOUNTED ✓✓✓
+
+Name: CBADS
+Type: SDHC
+Speed: 400.00 kHz (limit: 400.00 kHz)
+Size: 59645MBcity=122152960 read_bl_len=9
+SS...
+✓ File written successfully
+
+File contents:
+  ESP32 SD Card Test - Config 1: Ultra-safe (400kHz, 10s)
+  Frequency: 400 kHz
+  Success!
+✓ File read successfully
+
+SD card unmounted.
+----------------------------------------
+Config 2: Standard probe (400kHz, 5s)
+  Frequency: 400 kHz
+  Timeout: 5000 ms
+-------------------------------------Attempting mount...
+[0;32mI (14777) sdspi_transaction: cmd=52, R1 response: command not supported[0m
+[0;32mI (14977) sdspi_transaction: cmd=5, R1 response: command not supported[0m
+
+✓✓✓ SUCCESS! SD CARD MOUNTED ✓✓✓
+
+Name: CBADS
+Type: SDHC
+Speed: 400.00 kHz (limit: 400.00 kHz)
+Size: 59645MB
+CSD: ver=2, sector_size=512, capacity=122152960 read_bl_len=9
+SSR: bus_width=1
+
+Testing file write...
+✓ File written successfully
+
+File contents:
+  ESP32 SD Card Test - Config 2: Standard probe (400kHz, 5s)
+  Frequency: 400 kHz
+  Success!
+✓ File read successfully
+
+SD card unmounted.
+----------------------------------------
+Config 3: Medium speed (4MHz, 5s)
+  Frequency: 4000 kHz
+  Timeout: 5000 ms
+----------------------------------------
+Attempting mount...
+[0;32mI (24347) sdspi_transaction: cmd=52, R1 response: command not supported[0m
+[0;32mI (24547) sdspi_transaction: cmd=5, R1 response: command not supported[0m
+
+✓✓✓ SUCCESS! SD CARD MOUNTED ✓✓✓
+
+Name: CBADS
+Type: SDHC
+Speed: 4.00 MHz (limit: 4.00 MHz)
+Size: 59645MB
+CSD: bus_width=1
+
+Testing file write...
+✓ File written successfully
+
+File contents:
+  ESP32 SD Card Test - Config 3: Medium speed (4MHz, 5s)
+  Frequency: 4000 kHz
+  Success!
+✓ File read successfully
+
+SD card unmounted.
+----------------------------------------
+Config 4: Default SDMMC (default, 5s)
+  Frequency: 20000 kHz
+  Timeout: 5000 ms
+----------------------------------------
+Attempting mount...
+[0;32mI (33077) sdspi_transaction: cmd=52, R1 response: command not supported[0m
+[0;32mI (33277) sdspi_transaction: cmd=5, R1 response: command not supported[0m
+
+✓✓✓ SUCCESS! SD CARD MOUNTED ✓✓✓
+
+Name: CBADS
+Type: SDHC
+Speed: 20.00 MHz (limit: 20.00 MHz)
+Size: 59645MB
+CSR: bus_width=1
+
+Testing file write...
+✓ File written successfully
+
+File contents:
+  ESP32 SD Card Test - Config 4: Default SDMMC (default, 5s)
+  Frequency: 20000 kHz
+  Success!
+✓ File read successfully
+
+
+========================================
+DIAGNOSTIC COMPLETE
+========================================
+
+TROUBLESHOOTING TIPS:
+If all configs failed:
+  • SD card not inserted properly
+  • SD card damaged/incompatible
+  • Card not formatted as FAT32
+  • Try a different SD card
+  • Check SD slot solder joints
+
+If MISO test failed:
+  • Wiring issue on GPIO19
+  • Check continuity to SD slot
+
+Press RESET to test again.
+[0;32mI (41607) main_task: Returned from app_main()[0m

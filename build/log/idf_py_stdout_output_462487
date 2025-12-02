@@ -1,0 +1,145 @@
+Command: /home/rjt21/.espressif/python_env/idf6.0_py3.12_env/bin/python /home/rjt21/esp-idf/tools/idf_monitor.py -p /dev/ttyUSB0 -b 115200 --toolchain-prefix xtensa-esp32-elf- --target esp32 --revision 0 /home/rjt21/esp-projects/ecen330_lab7/build/ecen330_lab7.elf /home/rjt21/esp-projects/ecen330_lab7/build/bootloader/bootloader.elf -m '/home/rjt21/.espressif/python_env/idf6.0_py3.12_env/bin/python' '/home/rjt21/esp-idf/tools/idf.py'
+ddr=00052ec4 vaddr=50000000 size=00024h (    36) load
+�ets Jun  8 2016 00:22:57
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6376
+load:0x40078000,len:15864
+load:0x40080400,len:3908
+entry 0x40080644
+[0;32mI (27) boot: ESP-IDF v6.0-dev-2367-g5c5eb99eab 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Nov 21 2025 16:40:40[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (30) boot: chip revision: v1.1[0m
+[0;32mI (32) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (36) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (40) boot.esp32: SPI Flash Size : 2MB[0m
+[0;32mI (43) boot: Enabling RNG early entropy source...[0m
+[0;32mI (48) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (57) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (70) boot:  2 factory          factory app      00 00 00010000 000e0000[0m
+[0;32mI (76) boot:  3 storage          Unknown data     01 82 000f0000 00020000[0m
+[0;32mI (83) boot: End of partition table[0m
+[0;32mI (86) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=0ed08h ( 60680) map[0m
+[0;32mI (115) esp_image: segment 1: paddr=0001ed30 vaddr=3ffb0000 size=012e8h (  4840) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=00020020 vaddr=400d0020 size=24824h (149540) map[0m
+[0;32mI (172) esp_image: segment 3: paddr=0004484c vaddr=3ffb12e8 size=01538h (  5432) load[0m
+[0;32mI (175) esp_image: segment 4: paddr=00045d8c vaddr=40080000 size=0d130h ( 53552) load[0m
+[0;32mI (198) esp_image: segment 5: paddr=00052ec4 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (205) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (205) boot: Disabling RNG early entropy source...[0m
+[0;32mI (216) cpu_start: Multicore app[0m
+[0;32mI (224) cpu_start: GPIO 3 and 1 00000 Hz[0m
+[0;32mI (226) app_init: Application information:[0m
+[0;32mI (230) app_init: Project name:     ecen330_lab7[0m
+[0;32mI (235) app_init: App version:      1[0m
+[0;32mI (238) app_init: Compile time:     Nov 21 2025 16:40:46[0m
+[0;32mI (243) app_init: ELF file SHA256:  060c2e63c...[0m
+[0;32mI (247) app_init: ESP-IDF:          v6.0-dev-2367-g5c5eb99eab[0m
+[0;32mI (253) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (257) efuse_init: Max chip rev:     v3.99 [0m
+[0;32mI (261) efuse_init: Chip rev:         v1.1[0m
+[0;32mI (265) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (271) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (276) heap_init: At 3FFB3190 len 0002CE70 (179 KiB): DRAM[0m
+[0;32mI (281) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM[0m
+[0;32mI (286) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM[0m
+[0;32mI (292) heap_init: At 4008D130 len 00012ED0 (75 KiB): IRAM[0m
+[0;32mI (299) spi_flash: detected chip: generic[0m
+[0;32mI (301) spi_flash: flash io: dio[0m
+[0;33mW (304) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (317) main_task: Started on CPU0[0m
+[0;32mI (327) main_task: Calling app_main()[0m
+
+
+╔════════════════════════════════════════════════╗
+║      ESP32 SD CARD DIAGNOSTIC TOOL             ║
+╚════════════════════════════════════════════════╝
+
+This tool tests SD card with multiple configurations.
+Make sure:
+  1. SD card is inserted
+  2. SD card is formatted as FAT32
+  3. Card capacity is ≤32GB
+
+========================================
+TEST 1: GPIO BASIC FUNCTIONALITY
+========================================
+Pin ConfigIO23
+  SD_MISO = GPIO19
+  SD_SCK  = GPIO18
+
+All CS pins set ted):
+  SD_CS (GPIO5) = 0
+  LCD_CS (GPIO14) = 0
+  TOUCH_CS (G
+MISO Pin Test (GPIO19):
+  Pull-up   = 1 (expect 1)
+  Pull-down = 0 (expect 0)
+  ✓ MISO pin OK
+
+========================================
+TEST 2: SPI BUS INITIALIZATION
+========================================
+Initializing SPI2 (HSPI) bus...
+✓ SPI bus initialized successfully
+
+========================================
+TEST 3: SD CARD MOUNT ATTEMPTS
+========================================
+
+Trying multiple configurations...
+
+----------------------------------------
+Config 1: Ultra-safe (400kH Timeout: 10000 ms
+----------------------------
+Attempting mount...
+[1;31mE (2707) sdmmc_sd: sdmmc_init_sd_if_cond: send_if_cond (1) returned 0x108[0m
+[1;31mE (2707) vfs_fat_sdmmc: sdmmc_card_init failed (0x108).[0m
+✗ INVALID_RESPONSE (0x108)
+
+----------------------------------------
+Config 2: Standard probe (400kHz, 5s)
+  Frequency: 400 kHz
+  Timeout: 5000 ms
+-----Attempting mount...
+[1;31mE (3507) sdmmc_sd: sdmmc_init_sd_if_cond: send_if_cond (1) returned 0x108[0m
+[1;31mE (3507) vfs_fat_sdmmc: sdmmc_card_init failed (0x108).[0m
+✗ INVALID_RESPONSE (0x108)
+
+----------------------------------------
+Config 3: Medium speed (4MHz, 5s)
+  Frequency: 4000 kHz
+  Timeout: 5000 ms
+-------------------------------
+Attempting mount...
+[1;31mE (4307) sdmmc_sd: sdmmc_init_sd_if_cond: send_if_cond (1) returned 0x108[0m
+[1;31mE (4307) vfs_fat_sdmmc: sdmmc_card_init failed (0x1088)[0m
+
+----------------------------------------
+Config 4: Default SDMMC (default, 5s)
+  Frequency: 20000 kHz
+  Timeout: 5000 ms
+-----------------------------------Attempting mount...
+[1;31mE (5107) sdmmc_sd: sdmmc_init_sd_if_cond: send_if_cond (1) returned 0x108[0m
+[1;31mE (5107) vfs_fat_sdmmc: sdmmc_card_init failed (0x108[0m
+========================================
+DIAGNOSTIC COMPLETE
+========================================
+
+TROUBLESHOOTING TIP all configs failed:
+  • SD card not inserted properly
+  • SD card damaged/incompatible
+ Card not formatted as FAT32
+  � SD slot solder joints
+
+If MIS test failed:
+  • Wiring issu• Check continuity to SD slot
+
+Press RESET to test again.
+Ip_main()

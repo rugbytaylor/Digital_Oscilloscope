@@ -1,0 +1,33 @@
+name: ESP32 Build Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install ESP-IDF
+      run: |
+        git clone --recursive https://github.com/espressif/esp-idf.git
+        cd esp-idf
+        ./install.sh esp32
+        . ./export.sh
+        cd ..
+
+    - name: Build Firmware
+      run: |
+        . esp-idf/export.sh
+        idf.py build
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware
+        path: build/*.bin
