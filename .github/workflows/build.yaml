@@ -24,6 +24,7 @@ jobs:
     - name: Build Firmware
       run: |
         . esp-idf/export.sh
+        idf.py fullclean
         idf.py build
 
     - name: Upload Artifacts

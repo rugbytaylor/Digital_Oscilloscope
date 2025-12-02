@@ -2,3 +2,6 @@ build/
 sdkconfig.old
 *.pyc
 *.log
+*.bin
+*.elf
+*.map
