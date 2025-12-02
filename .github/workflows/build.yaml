@@ -1,4 +1,4 @@
-name: ESP32 Build Check
+name: ESP32 Build & Release
 
 on:
   push:
@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Install ESP-IDF
       run: |
@@ -27,8 +28,47 @@ jobs:
         idf.py fullclean
         idf.py build
 
-    - name: Upload Artifacts
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: firmware
-        path: build/*.bin
+        path: |
+          build/*.bin
+          build/flasher_args.json
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    # Only create Release on direct push to main branch
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Download firmware artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: firmware
+        path: ./firmware
+
+    - name: Display downloaded files
+      run: ls -R firmware
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v0.1.${{ github.run_number }}
+        name: "Automated Build ${{ github.run_number }}"
+        body: |
+          Automated firmware build for commit:
+          ${{ github.sha }}
+
+          OTA-ready firmware files:
+          - app(.bin)
+          - bootloader(.bin)
+          - partition_table(.bin)
+          - flasher_args.json
+        files: |
+          firmware/*.bin
+          firmware/flasher_args.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
