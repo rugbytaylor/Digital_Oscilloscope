@@ -119,6 +119,7 @@ void app_main(void)
 
     // start tasks
     xTaskCreate(adc_sample_task, "adc_task", 4096, NULL, 3, NULL);
+    
     // for testing LUT output
     xTaskCreate(monitor_task, "monitor_task", 4096, NULL, 1, NULL);
 
