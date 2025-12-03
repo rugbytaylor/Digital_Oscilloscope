@@ -19,7 +19,9 @@
 #define LOGGER_TIMER_RES_HZ 1000000 // 1MHz timer resolution
 #define LOGGER_ALARM_US ( LOGGER_TIMER_RES_HZ / LOGGER_SAMPLE_RATE_HZ )
 #define LOGGER_MAX_SAMPLES 20000         // 4 seconds at 5 kHz
-#define LOGGER_ADC_CHANNEL ADC_CHANNEL_2 // GPIO 2 (ADC2)
+// for controller board use ADC_CHANNEL_2
+// but that won't work with wifi on and OTA use
+#define LOGGER_ADC_CHANNEL ADC_CHANNEL_6 // GPIO 2 (ADC2)
 #define LOGGER_BUTTON_GPIO 32
 
 // Working SD pins:
@@ -110,8 +112,9 @@ void adc_logger_run( void )
 {
   ESP_LOGI( TAG, "Starting ADC Logger" );
 
-  esp_wifi_stop();
-  esp_wifi_deinit();
+  // use these calls for ADC2 on GPIO2
+  // esp_wifi_stop();
+  // esp_wifi_deinit();
 
   // Button Init
   gpio_config_t io = {
@@ -123,7 +126,7 @@ void adc_logger_run( void )
 
   // ADC Config
   adc_oneshot_unit_init_cfg_t icfg = {
-      .unit_id = ADC_UNIT_2,
+      .unit_id = ADC_UNIT_1,
   };
   adc_oneshot_new_unit( &icfg, &adc_handle );
 
