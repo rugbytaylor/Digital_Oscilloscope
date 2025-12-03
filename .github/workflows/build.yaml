@@ -26,10 +26,11 @@ jobs:
 
     - name: Check code formatting using clang-format
       run: |
-        FILES=$(find main -type f \( -name "*.c" -o -name "*.h"\))
+        FILES=$(find main -type f \( -name "*.c" -o -name "*.h" \))
         echo "Checking formatting on:"
         echo "$FILES"
-        clang-format -style=file --Werror --dry-run $FILES
+        clang-format -style=file -Werror --dry-run $FILES
+
 
     - name: Generate version header
       run: |
