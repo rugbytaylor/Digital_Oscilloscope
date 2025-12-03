@@ -1,18 +1,17 @@
-name: ESP32 Build & Release
+name: ESP32 Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Install ESP-IDF
       run: |
@@ -22,13 +21,29 @@ jobs:
         . ./export.sh
         cd ..
 
+    - name: Check code formatting
+      run: |
+        sudo apt-get install -y clang-format
+        clang-format --version
+        FORMAT_DIFF=$(clang-format -style=file -Werror --dry-run $(find main -name "*.c" -o -name "*.h") 2>&1)
+        if [ -n "$FORMAT_DIFF" ]; then
+          echo "Code formatting issues detected:"
+          echo "$FORMAT_DIFF"
+          exit 1
+        fi
+
+    - name: Generate version header
+      run: |
+        BUILD_NUMBER=${{ github.run_number }}
+        sed "s/\${BUILD_NUMBER}/${BUILD_NUMBER}/" main/version.h.template > main/version.h
+
     - name: Build Firmware
       run: |
         . esp-idf/export.sh
         idf.py fullclean
         idf.py build
 
-    - name: Upload build artifacts
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: firmware
@@ -39,8 +54,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-
-    # Only create Release on direct push to main branch
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -50,23 +63,12 @@ jobs:
         name: firmware
         path: ./firmware
 
-    - name: Display downloaded files
-      run: ls -R firmware
-
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v0.1.${{ github.run_number }}
-        name: "Automated Build ${{ github.run_number }}"
-        body: |
-          Automated firmware build for commit:
-          ${{ github.sha }}
-
-          OTA-ready firmware files:
-          - app(.bin)
-          - bootloader(.bin)
-          - partition_table(.bin)
-          - flasher_args.json
+        name: "Build ${{ github.run_number }}"
+        body: "Automated firmware build for commit ${{ github.sha }}"
         files: |
           firmware/*.bin
           firmware/flasher_args.json

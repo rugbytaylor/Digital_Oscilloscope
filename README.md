@@ -23,16 +23,15 @@ Every push to `main` triggers:
 | **Automated Release** | Each push generates a versioned firmware release |
 | **Scalable for OTA** | Easily upgradeable to push OTA-ready firmware |
 
-✔ No “works on my machine” issues  
-✔ Always have a downloadable firmware version  
-✔ Ready for remote deployment (OTA)
+No “works on my machine” issues  
+Always have a downloadable firmware version  
+Ready for remote deployment (OTA)
 
 ---
 
 ## Firmware Downloads
 Download the **latest firmware** here:
-
-👉 https://github.com/rugbytaylor/Digital_Oscilloscope/releases/latest
+https://github.com/rugbytaylor/Digital_Oscilloscope/releases/latest
 
 Use `esptool.py` or ESP-IDF to flash `.bin` files to your ESP32.
 

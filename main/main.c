@@ -7,6 +7,7 @@
 #include "esp_log.h"
 #include "esp_wifi.h" //need to ensure wifi is off to use ADC on GPIO2
 #include "LUT.c"
+#include "version.h"
 
 static const char *TAG = "lab7";
 
@@ -99,6 +100,7 @@ void monitor_task(void *arg)
 void app_main(void)
 {
     ESP_LOGI(TAG, "Starting Digital Oscilloscope...");
+    ESP_LOGI(TAG, "Firmware Version: %d.%d.%d", FW_MAJOR, FW_MINOR, FW_PATCH);
     
     // force wifi off to use ADC2 on GPIO2
     esp_wifi_stop();
