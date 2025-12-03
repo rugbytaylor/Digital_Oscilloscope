@@ -18,12 +18,11 @@ Every push to `main` triggers:
 
 | Stage | Description |
 |-------|-------------|
-| **CI Build** | Compiles firmware using a clean ESP-IDF toolchain |
+| **CI Build** | Compiles firmware using a clean ESP-IDF toolchain and auto clang-formats code |
 | **Artifact Export** | Uploads `.bin` and flashing metadata automatically |
 | **Automated Release** | Each push generates a versioned firmware release |
 | **Scalable for OTA** | Easily upgradeable to push OTA-ready firmware |
 
-No “works on my machine” issues  
 Always have a downloadable firmware version  
 Ready for remote deployment (OTA)
 
