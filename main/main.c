@@ -100,7 +100,7 @@ void monitor_task(void *arg)
 void app_main(void)
 {
     ESP_LOGI(TAG, "Starting Digital Oscilloscope...");
-    ESP_LOGI(TAG, "Firmware Version: %d.%d.%d", FW_MAJOR, FW_MINOR, FW_PATCH);
+    ESP_LOGI(TAG, "Firmware Version: %d.%d.%d", FW_MAJOR, FW_MINOR, FW_BUILD);
     
     // force wifi off to use ADC2 on GPIO2
     esp_wifi_stop();
