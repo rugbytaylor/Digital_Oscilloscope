@@ -10,4 +10,3 @@ ReflowComments: false
 BreakBeforeBraces: Allman
 SortIncludes: true
 SpaceBeforeParens: ControlStatements
-SpacesInParentheses: true

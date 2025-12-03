@@ -28,7 +28,7 @@ adc_oneshot_unit_handle_t adc_handle;
 gptimer_handle_t gptimer;
 
 // Forward declare ISR so config can see it
-static bool IRAM_ATTR timer_callback( gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx );
+static bool timer_callback( gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx );
 
 // Config structs
 static const adc_oneshot_unit_init_cfg_t adc_init_cfg = {
