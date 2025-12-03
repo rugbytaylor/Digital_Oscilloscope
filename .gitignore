@@ -5,4 +5,4 @@ sdkconfig.old
 *.bin
 *.elf
 *.mapbuild/
-*.osdkconfig.old
+*.o
