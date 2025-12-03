@@ -33,7 +33,8 @@ jobs:
     - name: Generate version header
       run: |
         BUILD_NUM=${{ github.run_number }}
-        sed "s/FW_BUILD 0/FW_BUILD ${BUILD_NUM}/" main/version.h.template > main/version.h
+        sed "s/BUILD_NUM/${BUILD_NUM}/" main/version.h.template > main/version.h
+
 
     - name: Build Firmware
       run: |
