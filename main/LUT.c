@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include "LUT.h"
 
 const float ADC_LUT[4096] = {
     4.967602f,

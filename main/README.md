@@ -26,6 +26,4 @@ Firmware is built using **ESP-IDF 5+**.
 To build locally:
 
 ```bash
-idf.py build
-idf.py flash
-idf.py monitor
+idf.py build flash monitor
