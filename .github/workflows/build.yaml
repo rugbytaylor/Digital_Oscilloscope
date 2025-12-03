@@ -20,22 +20,21 @@ jobs:
         ./install.sh esp32
         . ./export.sh
         cd ..
-
-    - name: Check code formatting
+    - name: Install clang-format
       run: |
         sudo apt-get install -y clang-format
-        clang-format --version
-        FORMAT_DIFF=$(clang-format -style=file -Werror --dry-run $(find main -name "*.c" -o -name "*.h") 2>&1)
-        if [ -n "$FORMAT_DIFF" ]; then
-          echo "Code formatting issues detected:"
-          echo "$FORMAT_DIFF"
-          exit 1
-        fi
+
+    - name: Check code formatting using clang-format
+      run: |
+        FILES=$(find main -type f \( -name "*.c" -o -name "*.h"\))
+        echo "Checking formatting on:"
+        echo "$FILES"
+        clang-format -style=file --Werror --dry-run $FILES
 
     - name: Generate version header
       run: |
-        BUILD_NUMBER=${{ github.run_number }}
-        sed "s/\${BUILD_NUMBER}/${BUILD_NUMBER}/" main/version.h.template > main/version.h
+        BUILD_NUM=${{ github.run_number }}
+        sed "s/@BUILD_NUM@/${BUILD_NUM}/g" main/version.h.template > main/version.h
 
     - name: Build Firmware
       run: |
