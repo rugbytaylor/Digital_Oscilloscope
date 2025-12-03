@@ -16,9 +16,7 @@ static const char *TAG = "lab7";
 #define SAMPLE_RATE_HZ 10000                                       // 10kHz sample rate
 #define TIMER_RESOLUTION_HZ 1000000                                // 1MHz timer resolution
 #define ALARM_INTERVAL_US ( TIMER_RESOLUTION_HZ / SAMPLE_RATE_HZ ) // so at 10kHz, this is 100 us
-#define ADC_CHANNEL                                                                                                    \
-  ADC_CHANNEL_2 // GPIO2 (on 330 board schematic its IO2) ONLY WORKS AS ADC if                                         \
-                // wifi is off
+#define ADC_CHANNEL ADC_CHANNEL_2                                  // GPIO2 ONLY WORKS IF WIFI IS OFF
 #define ADC_BUFFER_SIZE 4096
 #define ADC_QUEUE_LENGTH 1024
 

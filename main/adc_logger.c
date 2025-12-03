@@ -14,8 +14,22 @@
 
 #define TAG "ADC_LOGGER"
 
+// ==== USER CONFIGS ====
+#define LOGGER_SAMPLE_RATE_HZ 5000  // 5kHz sample rate
+#define LOGGER_TIMER_RES_HZ 1000000 // 1MHz timer resolution
+#define LOGGER_ALARM_US ( LOGGER_TIMER_RES_HZ / LOGGER_SAMPLE_RATE_HZ )
+#define LOGGER_MAX_SAMPLES 20000         // 4 seconds at 5 kHz
+#define LOGGER_ADC_CHANNEL ADC_CHANNEL_2 // GPIO 2 (ADC2)
+#define LOGGER_BUTTON_GPIO 32
+
+// Working SD pins:
+#define SD_CS_PIN 22
+#define SD_MOSI_PIN 23
+#define SD_MISO_PIN 19
+#define SD_SCK_PIN 18
+
 // ==== Internal State ====
-static uint16_t samples[MAX_SAMPLES];
+static uint16_t samples[LOGGER_MAX_SAMPLES];
 static volatile int sample_index = 0;
 static volatile bool logging     = false;
 
@@ -25,7 +39,7 @@ static QueueHandle_t trigger_q;
 // ==== ISR ====
 IRAM_ATTR static bool timer_isr_cb( gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx )
 {
-  if ( !logging || sample_index >= MAX_SAMPLES ) return false;
+  if ( !logging || sample_index >= LOGGER_MAX_SAMPLES ) return false;
   uint32_t trig = 1;
   BaseType_t hp = pdFALSE;
   xQueueSendFromISR( trigger_q, &trig, &hp );
@@ -41,7 +55,7 @@ static void sampler_task( void *arg )
     if ( xQueueReceive( trigger_q, &dummy, portMAX_DELAY ) )
     {
       int raw = 0;
-      adc_oneshot_read( adc_handle, ADC_CHANNEL, &raw );
+      adc_oneshot_read( adc_handle, LOGGER_ADC_CHANNEL, &raw );
       samples[sample_index++] = (uint16_t)raw;
     }
   }
@@ -83,7 +97,7 @@ static esp_err_t init_sdcard( void )
 }
 
 // ==== Button Helpers ====
-static bool button_pressed( void ) { return gpio_get_level( BUTTON_GPIO ) == 0; }
+static bool button_pressed( void ) { return gpio_get_level( LOGGER_BUTTON_GPIO ) == 0; }
 
 static void wait_release( void )
 {
@@ -101,7 +115,7 @@ void adc_logger_run( void )
 
   // Button Init
   gpio_config_t io = {
-      .pin_bit_mask = 1ULL << BUTTON_GPIO,
+      .pin_bit_mask = 1ULL << LOGGER_BUTTON_GPIO,
       .mode         = GPIO_MODE_INPUT,
       .pull_up_en   = 1,
   };
@@ -114,19 +128,19 @@ void adc_logger_run( void )
   adc_oneshot_new_unit( &icfg, &adc_handle );
 
   adc_oneshot_chan_cfg_t ccfg = { .bitwidth = ADC_BITWIDTH_12, .atten = ADC_ATTEN_DB_12 };
-  adc_oneshot_config_channel( adc_handle, ADC_CHANNEL, &ccfg );
+  adc_oneshot_config_channel( adc_handle, LOGGER_ADC_CHANNEL, &ccfg );
 
   // Timer Config
   gptimer_handle_t timer;
   gptimer_config_t tcfg = {
       .clk_src       = GPTIMER_CLK_SRC_DEFAULT,
       .direction     = GPTIMER_COUNT_UP,
-      .resolution_hz = TIMER_RES_HZ,
+      .resolution_hz = LOGGER_TIMER_RES_HZ,
   };
   gptimer_new_timer( &tcfg, &timer );
 
   gptimer_alarm_config_t acfg = {
-      .alarm_count                = ALARM_US,
+      .alarm_count                = LOGGER_ALARM_US,
       .flags.auto_reload_on_alarm = true,
   };
   gptimer_set_alarm_action( timer, &acfg );
@@ -152,7 +166,7 @@ void adc_logger_run( void )
   logging      = true;
   ESP_LOGI( TAG, "Logging..." );
 
-  while ( !button_pressed() && sample_index < MAX_SAMPLES )
+  while ( !button_pressed() && sample_index < LOGGER_MAX_SAMPLES )
     vTaskDelay( 1 );
 
   logging = false;
@@ -170,7 +184,7 @@ void adc_logger_run( void )
 
   fprintf( f, "time_s,adc_raw\n" );
   for ( int i = 0; i < sample_index; i++ )
-    fprintf( f, "%f,%u\n", (float)i / SAMPLE_RATE_HZ, samples[i] );
+    fprintf( f, "%f,%u\n", (float)i / LOGGER_SAMPLE_RATE_HZ, samples[i] );
   fclose( f );
 
   ESP_LOGI( TAG, "Saved: /sdcard/data.csv" );
