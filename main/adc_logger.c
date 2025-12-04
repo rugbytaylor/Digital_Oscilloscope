@@ -12,7 +12,7 @@
 #include "sdmmc_cmd.h"
 #include <stdio.h>
 
-#define TAG "ADC_LOGGER"
+static const char *TAG = "ADC_LOGGER";
 
 // ==== USER CONFIGS ====
 #define LOGGER_SAMPLE_RATE_HZ 5000  // 5kHz sample rate

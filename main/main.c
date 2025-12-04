@@ -1,5 +1,4 @@
-#include "LUT.h"
-#include "adc_logger.h"
+#include <stdio.h>
 #include "driver/gptimer.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
@@ -7,8 +6,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "lvgl.h"
+#include "esp_timer.h"
+#include "esp_random.h"
+
+#include "LUT.h"
+#include "adc_logger.h"
 #include "version.h"
-#include <stdio.h>
+#include "waveform_display.h"
+
 
 static const char *TAG = "lab7";
 
@@ -19,10 +25,10 @@ static const char *TAG = "lab7";
 #define ADC_CHANNEL ADC_CHANNEL_2                                  // GPIO2 ONLY WORKS IF WIFI IS OFF
 #define ADC_BUFFER_SIZE 4096
 #define ADC_QUEUE_LENGTH 1024
-
+#define DISPLAY_UPDATE_RATE_MS 10 // 10ms is 100 Hz update rate
 // global stuff
 QueueHandle_t adc_queue;
-volatile uint16_t adc_buff[ADC_BUFFER_SIZE];
+volatile int adc_buff[ADC_BUFFER_SIZE];
 volatile size_t adc_index = 0;
 adc_oneshot_unit_handle_t adc_handle;
 gptimer_handle_t gptimer;
@@ -97,6 +103,16 @@ void monitor_task( void *arg )
   }
 }
 
+void waveform_update_task(void *arg)
+{
+    uint16_t sample;
+    while (1) {
+        if (xQueueReceive(adc_queue, &sample, portMAX_DELAY)) {
+            waveform_display_add_sample(sample);
+        }
+    }
+}
+
 void app_main( void )
 {
   ESP_LOGI( TAG, "Starting Digital Oscilloscope..." );
@@ -106,11 +122,14 @@ void app_main( void )
   esp_wifi_stop();
   esp_wifi_deinit();
 
+  // waveform display init
+  waveform_display_init();
+
   // ADC setup
   adc_oneshot_new_unit( &adc_init_cfg, &adc_handle );
   adc_oneshot_config_channel( adc_handle, ADC_CHANNEL, &adc_chan_cfg );
   // ADC queue setup
-  adc_queue = xQueueCreate( ADC_QUEUE_LENGTH, sizeof( uint16_t ) );
+  adc_queue = xQueueCreate( ADC_QUEUE_LENGTH, sizeof( int ) );
 
   // timer setup
   gptimer_new_timer( &timer_cfg, &gptimer );
@@ -120,8 +139,12 @@ void app_main( void )
   gptimer_start( gptimer );
 
   // start tasks
-  xTaskCreate( adc_sample_task, "adc_task", 4096, NULL, 3, NULL );
+// after wifi off, ADC/timer init, etc.
+
+xTaskCreate(adc_sample_task, "adc_task", 4096, NULL, 2, NULL);
+xTaskCreate(waveform_update_task, "waveform_update", 4096, NULL, 3, NULL);   // feeds samples into chart
+xTaskCreate(lvgl_task, "lvgl", 4096, NULL, 5, NULL);   // GUI
 
   // for testing LUT output
-  xTaskCreate( monitor_task, "monitor_task", 4096, NULL, 1, NULL );
+  //xTaskCreate( monitor_task, "monitor_task", 4096, NULL, 1, NULL );
 }
