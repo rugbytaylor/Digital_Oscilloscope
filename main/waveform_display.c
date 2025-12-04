@@ -154,6 +154,67 @@ static void lvgl_flush(lv_disp_drv_t *drv,
     lv_disp_flush_ready(drv);
 }
 
+static lv_obj_t *label_y;
+static lv_obj_t *label_x;
+
+static void add_axis_labels(void)
+{
+    label_y = lv_label_create(lv_scr_act());
+    lv_label_set_text(label_y, "Voltage (V)");
+    //lv_obj_set_style_transform_angle(label_y, 900, LV_PART_MAIN); // 90 deg = 900 (LV uses 0.1deg units)
+    lv_obj_align(label_y, LV_ALIGN_LEFT_MID, 5, 0);
+
+    label_x = lv_label_create(lv_scr_act());
+    lv_label_set_text(label_x, "Time");
+    lv_obj_align(label_x, LV_ALIGN_BOTTOM_MID, 0, -5);
+}
+
+static void configure_grid(void)
+{
+    lv_chart_set_div_line_count(chart, 8, 10);  // H, V divisions
+    lv_obj_set_style_border_width(chart, 0, LV_PART_MAIN);
+    lv_obj_set_style_line_color(chart, lv_palette_lighten(LV_PALETTE_GREY, 2), LV_PART_MAIN);
+}
+
+static lv_obj_t *cursor_line;
+static lv_obj_t *cursor_line;
+static lv_obj_t *cursor_label;
+static int32_t cursor_index = 160; // center of screen initially
+
+static void cursor_update_position(void)
+{
+    lv_obj_align(cursor_line, LV_ALIGN_LEFT_MID, cursor_index, 0);
+
+    // Look up the Y-value in the chart
+    if (series) {
+        uint16_t sample = series->y_points[cursor_index];
+        char text[32];
+        snprintf(text, sizeof(text), "Idx:%ld  V=%.3f",
+         (long)cursor_index, (float)sample * (3.3f / 4095.0f));
+        lv_label_set_text(cursor_label, text);
+
+        lv_obj_align(cursor_label, LV_ALIGN_TOP_RIGHT, -10, 10);
+    }
+}
+
+static void create_cursor_marker(void)
+{
+    static lv_point_t pts[] = {{0,0},{0,LCD_VRES}};
+    cursor_line = lv_line_create(lv_scr_act());
+    lv_line_set_points(cursor_line, pts, 2);
+
+    lv_obj_set_style_line_color(cursor_line,
+        lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN);
+    lv_obj_set_style_line_width(cursor_line, 2, LV_PART_MAIN);
+
+    cursor_label = lv_label_create(lv_scr_act());
+    lv_label_set_text(cursor_label, "");
+
+    cursor_update_position();
+}
+
+
+
 /*-------------------------------------------------------------------*/
 // Display + Chart Setup
 /*-------------------------------------------------------------------*/
@@ -185,7 +246,7 @@ void waveform_display_init(void)
     chart = lv_chart_create(lv_scr_act());
     lv_obj_set_size(chart, LCD_HRES, LCD_VRES);
     lv_obj_center(chart);
-
+    
     lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
     lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_CIRCULAR);
     lv_chart_set_point_count(chart, LCD_HRES);
@@ -201,6 +262,10 @@ void waveform_display_init(void)
         series->y_points[i] = 2048;
 
     lv_chart_refresh(chart);
+    
+    configure_grid();
+    add_axis_labels();
+    create_cursor_marker();
 
     ESP_LOGI(TAG, "Display + Chart Ready");
 }
