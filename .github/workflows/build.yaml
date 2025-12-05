@@ -1,4 +1,4 @@
-name: ESP32 Pipeline
+name: Digital Oscilloscope Pipeline
 
 on:
   push:
