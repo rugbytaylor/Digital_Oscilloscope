@@ -1,4 +1,4 @@
-name: ESP32 Pipeline
+name: Digital Oscilloscope Pipeline
 
 on:
   push:
@@ -13,34 +13,58 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # ------------- CACHE ESP-IDF TOOLCHAIN -------------
+    - name: Cache ESP-IDF Tools
+      uses: actions/cache@v3
+      id: espidf-tools-cache
+      with:
+        path: ~/.espressif
+        key: ${{ runner.os }}-espidf-tools-${{ hashFiles('**/*.c', '**/*.h') }}
+
+    # ------------- CACHE ESP-IDF DIRECTORY -------------
+    - name: Cache ESP-IDF Source
+      uses: actions/cache@v3
+      id: espidf-cache
+      with:
+        path: esp-idf
+        key: ${{ runner.os }}-espidf-${{ hashFiles('.github/workflows/build.yaml') }}
+
+    # ------------- INSTALL ESP-IDF IF CACHE MISSED -------------
     - name: Install ESP-IDF
+      if: steps.espidf-cache.outputs.cache-hit != 'true'
       run: |
         git clone --recursive --branch release/v6.0 https://github.com/espressif/esp-idf.git
         cd esp-idf
         ./install.sh esp32
+
+    # Always export environment
+    - name: Export ESP-IDF
+      run: |
+        cd esp-idf
         . ./export.sh
         cd ..
 
+    # ------------- FORMAT CODE -------------
     - name: Check code formatting using clang-format
       run: |
         sudo apt-get install -y clang-format
         FILES=$(find main -type f \( -name "*.c" -o -name "*.h" \))
-        echo "formatting the following files:"
-        echo "$FILES"
         clang-format -style=file -i $FILES
 
+    # ------------- AUTOMATED VERSIONING -------------
     - name: Generate version header
       run: |
         BUILD_NUM=${{ github.run_number }}
         sed "s/BUILD_NUM/${BUILD_NUM}/" main/version.h.template > main/version.h
 
+    # ------------- BUILD -------------
     - name: Build Firmware
       run: |
         . esp-idf/export.sh
         idf.py set-target esp32
-        idf.py fullclean
         idf.py build
 
+    # ------------- LOG STORAGE ON FAIL -------------
     - name: Upload build logs on failure
       if: failure()
       run: |
@@ -57,6 +81,7 @@ jobs:
     - name: debug version file
       run: cat main/version.h
 
+    # ------------- ARTIFACTS -------------
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
