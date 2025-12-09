@@ -29,6 +29,15 @@ jobs:
         path: esp-idf
         key: ${{ runner.os }}-espidf-${{ hashFiles('.github/workflows/build.yaml') }}
 
+    # ------------- INSTALL PYTHON 3.11 -------------
+    - name: Install Python 3.11
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3.11 python3.11-venv
+        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+        sudo update-alternatives --set python3 /usr/bin/python3.11
+        python3 --version
+
     # ------------- INSTALL ESP-IDF IF CACHE MISSED -------------
     - name: Install ESP-IDF
       if: steps.espidf-cache.outputs.cache-hit != 'true'
