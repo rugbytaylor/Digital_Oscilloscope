@@ -1,150 +1,200 @@
 #include <stdio.h>
-#include "driver/gptimer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+
 #include "esp_adc/adc_oneshot.h"
+#include "driver/gptimer.h"
 #include "esp_log.h"
 #include "esp_wifi.h" //need to ensure wifi is off to use ADC on GPIO2
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
-#include "lvgl.h"
 #include "esp_timer.h"
-#include "esp_random.h"
+#include "driver/gpio.h"
 
 #include "LUT.h"
-#include "adc_logger.h"
-#include "version.h"
+#include "lcd.h"
+#include "config.h" 
 #include "waveform_display.h"
-
+#include "joystick_dma.h"
+#include "btns.h"
 
 static const char *TAG = "lab7";
 
-// constants
-#define SAMPLE_RATE_HZ 10000                                       // 10kHz sample rate
-#define TIMER_RESOLUTION_HZ 1000000                                // 1MHz timer resolution
-#define ALARM_INTERVAL_US ( TIMER_RESOLUTION_HZ / SAMPLE_RATE_HZ ) // so at 10kHz, this is 100 us
-#define ADC_CHANNEL ADC_CHANNEL_2                                  // GPIO2 ONLY WORKS IF WIFI IS OFF
-#define ADC_BUFFER_SIZE 4096
-#define ADC_QUEUE_LENGTH 1024
-#define DISPLAY_UPDATE_RATE_MS 10 // 10ms is 100 Hz update rate
 // global stuff
 QueueHandle_t adc_queue;
-volatile int adc_buff[ADC_BUFFER_SIZE];
+volatile uint16_t adc_buff[ADC_BUFFER_SIZE];
 volatile size_t adc_index = 0;
 adc_oneshot_unit_handle_t adc_handle;
 gptimer_handle_t gptimer;
+TaskHandle_t main_task_handle = NULL;
+TimerHandle_t frame_timer;
+uint8_t frame_count = 0;
+joystick_pos_t joystick_pos;
 
-// Forward declare ISR so config can see it
-static bool timer_callback( gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx );
 
-// Config structs
+static void frame_timer_cb(TimerHandle_t xTimer) 
+{ 
+    if (main_task_handle != NULL) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        vTaskNotifyGiveFromISR(main_task_handle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+}
+
+// ADC Timer ISR
+IRAM_ATTR static bool timer_callback(gptimer_handle_t timer,
+                                     const gptimer_alarm_event_data_t *edata,
+                                     void *user_ctx)
+{
+    uint16_t sample = 0;
+    adc_oneshot_read(adc_handle, ADC_CHANNEL, (int*) &sample);
+
+    BaseType_t hp = pdFALSE;
+    xQueueSendFromISR(adc_queue, &sample, &hp);
+    return (hp == pdTRUE);
+}
+
+// ADC Queue Consumer → Store in Circular Buffer
+void adc_sample_task(void *arg)
+{
+    uint16_t val;
+    while (1)
+    {
+        if (xQueueReceive(adc_queue, &val, portMAX_DELAY))
+        {
+            adc_buff[adc_index] = val;
+            adc_index = (adc_index + 1) % ADC_BUFFER_SIZE;
+
+            waveform_display_add_sample(val);
+        }
+    }
+}
+
+// Button Config
+static void config_btns(void)
+{
+    button_init(BTN_A);
+    button_init(BTN_B);
+    button_init(BTN_MENU);
+}
+
+// config structs
 static const adc_oneshot_unit_init_cfg_t adc_init_cfg = {
-    .unit_id = ADC_UNIT_2,
+    .unit_id = ADC_UNIT_2
 };
 static const adc_oneshot_chan_cfg_t adc_chan_cfg = {
     .bitwidth = ADC_BITWIDTH_12,
-    .atten    = ADC_ATTEN_DB_12,
+    .atten = ADC_ATTEN_DB_12
 };
 static const gptimer_config_t timer_cfg = {
-    .clk_src       = GPTIMER_CLK_SRC_DEFAULT,
-    .direction     = GPTIMER_COUNT_UP,
+    .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+    .direction = GPTIMER_COUNT_UP,
     .resolution_hz = TIMER_RESOLUTION_HZ,
 };
 static const gptimer_alarm_config_t alarm_cfg = {
-    .alarm_count                = ALARM_INTERVAL_US,
-    .reload_count               = 0,
+    .alarm_count = ALARM_INTERVAL_US,
+    .reload_count = 0,
     .flags.auto_reload_on_alarm = true,
 };
 static const gptimer_event_callbacks_t timer_cbs = {
     .on_alarm = timer_callback,
 };
 
-/* --------------------------------------------------------------
-    Functions
--------------------------------------------------------------- */
 
-// Timer ISR to read ADC value
-IRAM_ATTR static bool timer_callback( gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx )
+void app_main(void)
 {
-  int adc_sample = 0;
-  adc_oneshot_read( adc_handle, ADC_CHANNEL, &adc_sample );
-  BaseType_t hp = pdFALSE;
-  // send adc sample to queue
-  xQueueSendFromISR( adc_queue, &adc_sample, &hp );
-  return hp == pdTRUE; // request context switch
-}
+    ESP_LOGI(TAG, "Starting Digital Oscilloscope...");
+    main_task_handle = xTaskGetCurrentTaskHandle();
 
-// store adc readings from queue into a buffer
-void adc_sample_task( void *arg )
-{
-  int adc_reading;
-  while ( 1 )
-  {
-    // Wait for ADC reading from ISR
-    if ( xQueueReceive( adc_queue, &adc_reading, portMAX_DELAY ) )
+    // init setups
+    esp_wifi_stop(); // force wifi off to use ADC2
+    esp_wifi_deinit(); // ^^
+    lcd_init();
+    joystick_init();
+    waveform_display_init();
+    config_btns();
+
+    // create and start frame timer
+    frame_timer = xTimerCreate(
+        "frame_timer",
+        pdMS_TO_TICKS(FRAME_PERIOD_MS),
+        pdTRUE,
+        NULL,
+        frame_timer_cb
+    );
+    xTimerStart(frame_timer, 0);
+
+    // ADC setup
+    adc_oneshot_new_unit(&adc_init_cfg, &adc_handle);
+    adc_oneshot_config_channel(adc_handle, ADC_CHANNEL, &adc_chan_cfg);
+    // ADC queue setup
+    adc_queue = xQueueCreate(ADC_QUEUE_LENGTH, sizeof(uint16_t));
+    // create ADC task BEFORE starting timer
+    xTaskCreate(adc_sample_task, "adc_task", 4096, NULL, 3, NULL);
+
+    // timer setup
+    gptimer_new_timer(&timer_cfg, &gptimer);
+    gptimer_register_event_callbacks(gptimer, &timer_cbs, NULL); //register ISR
+    gptimer_set_alarm_action(gptimer, &alarm_cfg); // setup alarm
+    gptimer_enable(gptimer);
+    gptimer_start(gptimer);
+
+    // Button state tracking for debouncing
+    bool btn_a_prev = false;
+    bool btn_b_prev = false;
+    bool btn_menu_prev = false;
+    bool frozen = false;
+
+    // main display loop
+    while (1)
     {
-      // Store adc_reading in circular buffer
-      adc_buff[adc_index] = adc_reading;
-      adc_index           = ( adc_index + 1 ) % ADC_BUFFER_SIZE;
-    }
-  }
-}
+        // Wait for frame timer notification for precise timing
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        
+        bool btn_a = btn_pressed(BTN_A);
+        bool btn_b = btn_pressed(BTN_B);
+        bool btn_menu = btn_pressed(BTN_MENU);
 
-void monitor_task( void *arg )
-{
-  while ( 1 )
-  {
-    size_t prev_index     = ( adc_index - 1 + ADC_BUFFER_SIZE ) % ADC_BUFFER_SIZE;
-    uint16_t last_adc_raw = adc_buff[prev_index];
-    // retrieve real voltage value from LUT
-    float vin_real = ADC_LUT[last_adc_raw];
-    // test for correct LUT mapping by logging values
-    ESP_LOGI( TAG, "ADC_raw: %d LUT Voltage: %.3f", last_adc_raw, vin_real );
-    vTaskDelay( pdMS_TO_TICKS( 500 ) ); // 500ms delay between display updates
-  }
-}
-
-void waveform_update_task(void *arg)
-{
-    uint16_t sample;
-    while (1) {
-        if (xQueueReceive(adc_queue, &sample, portMAX_DELAY)) {
-            waveform_display_add_sample(sample);
+        // bnt A pressed so freeze screen 
+        if (btn_a && !btn_a_prev) {
+            frozen = true;
+            lcd_drawString(5, 5, "SCREEN FROZEN", FROZEN_TXT_COLOR);
+            // reset joystick pos to center
+            joystick_pos.y = 0;
         }
+
+        // btn B pressed so unfreeze if
+        if (frozen && btn_b && !btn_b_prev) {
+            frozen = false;
+            lcd_drawString(5, 5, "SCREEN FROZEN", WHITE);
+        }
+
+        // btn MENU pressed so cycle timebase and unfreeze
+        if (btn_menu && !btn_menu_prev) {
+            cycle_timebase_mode();
+            frozen = false;
+            lcd_drawString(5, 5, "SCREEN FROZEN", WHITE);
+        }
+
+        // update joystick every frame if frozen or not
+        joystick_read(&joystick_pos);
+
+        // Only draw waveform if not frozen
+        if (!frozen) {
+            int redraw_interval = get_redraw_interval();
+            if (frame_count % redraw_interval == 0) {
+                waveform_display_draw_full_frame();
+                frame_count = 0;
+            }
+            frame_count++;
+        } else {
+            int y_curr = joystick_pos.y;
+            cursor_update(frozen, y_curr);
+        }
+        
+        // reset btns
+        btn_a_prev = btn_a;
+        btn_b_prev = btn_b;
+        btn_menu_prev = btn_menu;
     }
-}
 
-void app_main( void )
-{
-  ESP_LOGI( TAG, "Starting Digital Oscilloscope..." );
-  ESP_LOGI( TAG, "Firmware Version: %d.%d.%d", FW_MAJOR, FW_MINOR, FW_BUILD );
-
-  // force wifi off to use ADC2 on GPIO2
-  esp_wifi_stop();
-  esp_wifi_deinit();
-
-  // waveform display init
-  waveform_display_init();
-
-  // ADC setup
-  adc_oneshot_new_unit( &adc_init_cfg, &adc_handle );
-  adc_oneshot_config_channel( adc_handle, ADC_CHANNEL, &adc_chan_cfg );
-  // ADC queue setup
-  adc_queue = xQueueCreate( ADC_QUEUE_LENGTH, sizeof( int ) );
-
-  // timer setup
-  gptimer_new_timer( &timer_cfg, &gptimer );
-  gptimer_set_alarm_action( gptimer, &alarm_cfg );               // setup alarm
-  gptimer_register_event_callbacks( gptimer, &timer_cbs, NULL ); // register ISR
-  gptimer_enable( gptimer );
-  gptimer_start( gptimer );
-
-  // start tasks
-// after wifi off, ADC/timer init, etc.
-
-xTaskCreate(adc_sample_task, "adc_task", 4096, NULL, 2, NULL);
-xTaskCreate(waveform_update_task, "waveform_update", 4096, NULL, 3, NULL);   // feeds samples into chart
-xTaskCreate(lvgl_task, "lvgl", 4096, NULL, 5, NULL);   // GUI
-
-  // for testing LUT output
-  //xTaskCreate( monitor_task, "monitor_task", 4096, NULL, 1, NULL );
 }
