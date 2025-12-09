@@ -44,6 +44,12 @@ jobs:
         . ./export.sh
         cd ..
 
+    - name: Install ESP-IDF Python Env
+      run: |
+        cd esp-idf
+        ./install.sh esp32
+        cd ..
+
     # ------------- FORMAT CODE -------------
     - name: Check code formatting using clang-format
       run: |
