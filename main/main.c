@@ -47,7 +47,6 @@ IRAM_ATTR static bool timer_callback(gptimer_handle_t timer,
 {
     uint16_t sample = 0;
     adc_oneshot_read(adc_handle, ADC_CHANNEL, (int*) &sample);
-
     BaseType_t hp = pdFALSE;
     xQueueSendFromISR(adc_queue, &sample, &hp);
     return (hp == pdTRUE);
