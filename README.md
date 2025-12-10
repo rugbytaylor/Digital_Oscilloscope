@@ -7,24 +7,29 @@ This repo is fully integrated with a **modern DevOps pipeline** using GitHub Act
 
 ## Project Features
 - Real-time ADC data capture @ 10kHz
-- Captures inputs from +5V to -4.5V with +-25mV accuracy
+- Captures inputs from +5V to -5V with +-25mV accuracy
 - Waveform rendering on MSP240x LCD screen
 - Button-controlled triggering
+- Joystick-controlled cursor with real voltage readings
 - Efficient use of ESP32 timers & DMA
 - Future support for **OTA firmware updates**
 
 ## DevOps Pipeline
-Every push to `main` triggers:
+
+All development work should be pushed to the "off" branch. The pipeline runs automatically and produces builds and releases without manual steps from the developer.
+
+How to interact with the pipeline:
+1. Commit changes to the off branch.
+2. Push to the remote repository. This triggers the CI workflow.
+3. Review the build results on the Actions tab.
+4. Download firmware artifacts or use the generated release if testing new images.
 
 | Stage | Description |
 |-------|-------------|
-| **CI Build** | Compiles firmware using a clean ESP-IDF toolchain and auto clang-formats code |
-| **Artifact Export** | Uploads `.bin` and flashing metadata automatically |
-| **Automated Release** | Each push generates a versioned firmware release |
-| **Scalable for OTA** | Easily upgradeable to push OTA-ready firmware |
-
-Always have a downloadable firmware version  
-Ready for remote deployment (OTA)
+| **CI Build** | Compiles firmware in a clean ESP-IDF environment and applies automatic clang-format rules. |
+| **Artifact Export** | Publishes the compiled bin files and associated flashing metadata. |
+| **Automated Release** | Creates a versioned firmware release for every successful push. |
+| **OTA Ready Output** | Produces firmware images suitable for an OTA deployment workflow. |
 
 ---
 
@@ -54,6 +59,8 @@ This means you’ll never need a USB cable again to deploy updates!
 - ESP-IDF v5.0+ installed locally
 - ESP32 development board
 - MSP240x display
+- Joystick
+- Buttons
 
 ---
 
@@ -64,7 +71,6 @@ MIT — free to modify and improve! Pull Requests welcome.
 
 ## Future Improvements
 - Enable OTA update (using GitHub release binaries)
-- Automatic versioning
-- Static code checks (lint + safety)
+- Unit tests for code
 - Hardware trigger and oversampling
 - Higher-rate ADC streaming
